@@ -9,10 +9,4 @@ let employee = {
 
 // console.log(employee.getWage());
 
-const F = function () {
-  this.a = 1;
-  this.b = 2;
-  this.add = function () {
-    a + this.b;
-  };
-};
+
