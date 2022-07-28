@@ -1,5 +1,5 @@
 node_modules
-config_env
+config.env
 OOP.js
 LC.js
 serverTest.js
