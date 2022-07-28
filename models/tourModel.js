@@ -1,57 +1,68 @@
 const mongoose = require('mongoose');
 
-const tourSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'A tour must have a name'],
-    unique: true,
-    trim: true,
+const tourSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'A tour must have a name'],
+      unique: true,
+      trim: true,
+    },
+    duration: {
+      type: Number,
+      required: [true, 'A tour must have a duration'],
+    },
+    maxGroupSize: {
+      type: Number,
+      required: [true, 'A tour must have a group size'],
+    },
+    difficulty: {
+      type: String,
+      required: [true, 'A tour must have a difficulty'],
+    },
+    ratingsAverage: {
+      type: Number,
+      default: 4.5,
+    },
+    ratingsQuantity: {
+      type: Number,
+      default: 0,
+    },
+    price: {
+      type: Number,
+      required: [true, 'A tour must have a price'],
+    },
+    priceDiscount: Number,
+    summary: {
+      type: String,
+      trim: true,
+      required: [true, 'A tour must have a description'],
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    imageCover: {
+      type: String,
+      required: [true, 'A tour must have an image'],
+    },
+    images: [String],
+    createdAt: {
+      type: Date,
+      default: Date.now(), // in mongo this is immediately converted to date format that we can read and understand
+      select: false,
+    },
+    startDates: [Date],
   },
-  duration: {
-    type: Number,
-    required: [true, 'A tour must have a duration'],
-  },
-  maxGroupSize: {
-    type: Number,
-    required: [true, 'A tour must have a group size'],
-  },
-  difficulty: {
-    type: String,
-    required: [true, 'A tour must have a difficulty'],
-  },
-  ratingsAverage: {
-    type: Number,
-    default: 4.5,
-  },
-  ratingsQuantity: {
-    type: Number,
-    default: 0,
-  },
-  price: {
-    type: Number,
-    required: [true, 'A tour must have a price'],
-  },
-  priceDiscount: Number,
-  summary: {
-    type: String,
-    trim: true,
-    required: [true, 'A tour must have a description'],
-  },
-  description: {
-    type: String,
-    trim: true,
-  },
-  imageCover: {
-    type: String,
-    required: [true, 'A tour must have an image'],
-  },
-  images: [String],
-  createdAt: {
-    type: Date,
-    default: Date.now(), // in mongo this is immediately converted to date format that we can read and understand
-    select: false,
-  },
-  startDates: [Date],
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+tourSchema.virtual('durationWeeks').get(function () {
+  // we used an arrow function here because as we know the arrow function does not get its own this keyword so therefore in mongoose since we need the this keyword a lot we will probably use the normal function a lot.
+  return this.duration / 7;
 });
 
 const Tour = mongoose.model('Tour', tourSchema);
