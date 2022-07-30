@@ -231,5 +231,3 @@ exports.getMonthlyPlan = async (req, res) => {
     res.status(404).json({ status: 'fail', message: err });
   }
 };
-
-// 103
