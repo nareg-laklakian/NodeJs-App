@@ -83,7 +83,4 @@ module.exports = app;
 /// making different files for each resource
 
 // 65 chaining multiple middleware functions
-
-// watch 80 last 1 minute again and then do  81
-
-// 115
+//
