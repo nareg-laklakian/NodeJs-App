@@ -43,7 +43,7 @@ const sendErrorProd = (err, res) => {
     // Programming or other unknown error: 'we don't want to leak the error details to the client'
   } else {
     // 1) Log error
-    console.log('else statement  3');
+    // console.log('else statement  3');
     // console.log((err.isOperational = false));
     console.error('Error💥', err);
     // 2) send generic message
@@ -74,14 +74,9 @@ module.exports = (err, req, res, next) => {
   }
 };
 
-//118
-
 //  sendErrorProd is not working properly and it defaults to the else if error instead of the if isOperational error.
 /// not working the last thing in 118 fix the error message not showing
 
 // not reading castError and going into sendErrorProd instead of the last module.export
 
 // (["'])(||?.)*?|1
-
-// 120 done continue at 121
-//

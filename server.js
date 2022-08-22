@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+
+process.on('uncaughtException', (err) => {
+  console.log('UNCAUGHT EXCEPTION 💥  SHUTTING DOWN....');
+  console.log(err.name, err.message);
+  process.exit(1);
+});
+
+// In the unhandled rejection the crashing of the application by applying process.exit(1) is optional , in uncaught exception we really need to crash our application because after there was uncaught exception the entire node process was in so called unclean state.
+
+// we want to lock the error to the console and then shows up in the logs in our server
+// so giving us a way to fix the problem and then we want to gracefully shut down the server
+
+///
+///
+
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
@@ -57,17 +72,4 @@ process.on('unhandledRejection', (err) => {
 // by doing server.close we give the server time to finish all the requests that are still pending or are being handled at the time and only after that the server is killed!
 // in process exit in the parameters of the exit function (0) means success and (1) means failure
 
-process.on('uncaughtException', (err) => {
-  console.log('UNCAUGHT EXCEPTION 💥  SHUTTING DOWN');
-  console.log(err.name, err.message);
-  server.close(() => {
-    process.exit(1);
-  });
-});
-
-// In the unhandled rejection the crashing of the application by applying process.exit(1) is optional , in uncaught exception we really need to crash our application because after there was uncaught exception the entire node process was in so called unclean state.
-
-// we want to lock the error to the console and then shows up in the logs in our server
-// so giving us a way to fix the problem and then we want to gracefully shut down the server
-
-console.log(x);
+// console.log(x);
