@@ -18,7 +18,7 @@ class APIFeatures {
   }
   sort() {
     if (this.queryString.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
+      const sortBy = this.query.sort.split(',').join(' ');
       this.query = this.query.sort(sortBy);
     } else {
       this.query = this.query.sort('-createdAt');
@@ -28,7 +28,7 @@ class APIFeatures {
 
   limitFields() {
     if (this.queryString.fields) {
-      const fields = req.query.fields.split(',').join(' ');
+      const fields = this.query.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
       this.query = this.query.select('-__v'); // minus(-) is excluding!!
@@ -47,3 +47,5 @@ class APIFeatures {
 }
 
 module.exports = APIFeatures;
+
+// 110 15:00 getting ?fields=name.duration to work on postman
