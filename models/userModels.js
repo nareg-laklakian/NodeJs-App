@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please confirm your password'],
     validate: {
-      // This only works on CREATE SAVE!!!!
+      // This only works on CREATE & SAVE!!!!
       validator: function (el) {
         return el === this.password;
         // here if the passwordConfirm doesn't match the password we will get a validation error
