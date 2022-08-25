@@ -26,7 +26,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minLength: [8, 'Password must be at least 6 characters'],
+    minLength: [8, 'Password must be at least 8 characters'],
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -56,8 +57,17 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// Instance method = method that is available on all documents of a certain collection
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+  // the return function above will return true if the two given parameters are the same and false if the two parameters are different
+  // we can't do it manually since the candidatePassword is not hashed since it is coming from the user and the userPassword is hashed since it is stored and coming from out database.
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
-
-// 125 again 126 again and then learn 127
