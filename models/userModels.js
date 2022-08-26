@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!!💥',
     },
   },
+  passwordChangedAt: Date,
 });
 
 // between getting the data and saving it to the database
@@ -66,6 +67,21 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
   // the return function above will return true if the two given parameters are the same and false if the two parameters are different
   // we can't do it manually since the candidatePassword is not hashed since it is coming from the user and the userPassword is hashed since it is stored and coming from out database.
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    console.log(this.passwordChangedAt, JWTTimestamp);
+    // const changedTimestamp = parseInt(
+    //   this.passwordChangedAt.getTime() / 1000,
+    //   10
+    // );
+
+    // return JWTTimestamp < changedTimestamp;
+  }
+
+  // false means not changed
+  return false;
 };
 
 const User = mongoose.model('User', userSchema);

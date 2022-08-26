@@ -27,6 +27,7 @@ app.use(express.static(`${__dirname}/public`));
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  // console.log(req.headers);
   // console.log(x); // we put this here to experiment with uncaught exception error handler in server.js
   next();
 });

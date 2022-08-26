@@ -1,3 +1,4 @@
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModels');
 const catchAsync = require('./../utils/catchAsync');
@@ -59,4 +60,40 @@ exports.login = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', token });
 });
 
-// 130
+exports.protect = catchAsync(async (req, res, next) => {
+  // 1) Getting token and check if it's there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  // console.log(token);
+
+  if (!token) {
+    return next(
+      new AppErrors('Yo are not logged in, please log in to get access', 401)
+    );
+  }
+
+  // The code above does not permit users that are not logged in to view parts of the database that we have implemented so they must log in , have a valid jwt token and then view those documents
+
+  // 2) Verification Token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  console.log(decoded);
+
+  // 3) Check if user still exists
+  const freshUser = await User.findById(decoded.id);
+  if (!freshUser) {
+    return next(
+      new AppErrors('The user belonging to the token no longer exists.', 401)
+    );
+  }
+
+  // 4) Check if user changed password after jwt issued
+  freshUser.changedPasswordAfter(decoded.iat);
+  next();
+});
+
+// 131 20 minute
