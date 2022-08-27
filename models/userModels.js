@@ -71,13 +71,17 @@ userSchema.methods.correctPassword = async function (
 
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
-    console.log(this.passwordChangedAt, JWTTimestamp);
-    // const changedTimestamp = parseInt(
-    //   this.passwordChangedAt.getTime() / 1000,
-    //   10
-    // );
+    // this.passwordChangedAt will console.log in the time format and not the the seconds format that we JWTTimestamp will be logged in therefore we will need to convert it to that and we do that by .getTime() and that will give us the milliseconds and then we need to divide by 1000 and parseInt it so that it will give us an integer
+    // console.log(this.passwordChangedAt, JWTTimestamp);
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
 
-    // return JWTTimestamp < changedTimestamp;
+    // console.log(changedTimestamp, JWTTimestamp);
+
+    // console.log(JWTTimestamp < changedTimestamp);
+    return JWTTimestamp < changedTimestamp;
   }
 
   // false means not changed

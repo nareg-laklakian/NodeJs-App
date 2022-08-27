@@ -13,18 +13,22 @@ const signToken = (id) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-  });
+  // const newUser = await User.create({
+  //   name: req.body.name,
+  //   email: req.body.email,
+  //   password: req.body.password,
+  //   passwordConfirm: req.body.passwordConfirm,
+  // });
+
+  const newUser = await User.create(req.body); // FIXME: The field of passwordChangedAt is not being logged in with the code above!!
 
   const token = signToken(newUser._id);
   // jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
   //   expiresIn: process.env.JWT_EXPIRES_IN,
   // });
-
+  //
+  console.log(newUser);
+  //
   res.status(201).json({
     status: 'success',
     token,
@@ -92,8 +96,19 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 4) Check if user changed password after jwt issued
-  freshUser.changedPasswordAfter(decoded.iat);
+  if (freshUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppErrors(
+        'User recently changed password. Please log in again!!',
+        401
+      )
+    );
+  }
+
+  // Grant access to the protected route
+  req.user = freshUser;
   next();
+  // Here the code will have to go through all the hurdles above to get to this next which will get it to the next route handler which in this situation will be to grant the user access.
 });
 
-// 131 20 minute
+// 132

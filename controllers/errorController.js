@@ -53,7 +53,7 @@ const sendErrorProd = (err, res) => {
     // 1) Log error
     // console.log('else statement  3');
     // console.log((err.isOperational = false));
-    console.error('Error💥', err);
+    console.error('Error:', err);
     // 2) send generic message
     res.status(500).json({
       status: 'error',
