@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 // name , email , photo(string just like tours) , password , password confirm
 
@@ -10,7 +11,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'A User name must be filled'],
     unique: true,
     maxLength: [18, 'A user name can not have more than 18 characters'],
-    minLength: [6, 'A user name must be at least 6 characters'],
+    // minLength: [6, 'A user name must be at least 6 characters'],
   },
   email: {
     type: String,
@@ -20,8 +21,11 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please Provide a valid email!'],
   },
 
-  photo: {
+  photo: String,
+  role: {
     type: String,
+    enum: ['admin', 'user', 'guide', 'lead-guide'],
+    default: 'user',
   },
   password: {
     type: String,
@@ -42,6 +46,8 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 // between getting the data and saving it to the database
@@ -88,6 +94,23 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   return false;
 };
 
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // since Date is in milliseconds therefore we wrote 10 times 60 for seconds and then 1000 for milliseconds
+
+  return resetToken;
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+
+// ?134 again and again and again !!!!

@@ -13,14 +13,19 @@ const signToken = (id) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  // const newUser = await User.create({
-  //   name: req.body.name,
-  //   email: req.body.email,
-  //   password: req.body.password,
-  //   passwordConfirm: req.body.passwordConfirm,
-  // });
+  const newUser = await User.create({
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm,
+    passwordChangedAt: req.body.passwordChangedAt,
+    role: req.body.role,
+    passwordResetToken: req.body.passwordResetToken,
+    passwordResetExpires: req.body.passwordResetExpires,
+    // here if we insert a password change in the body of the req it will register as a passwordChangedAt field and if we don't then that field will remain empty and not be filled
+  });
 
-  const newUser = await User.create(req.body); // FIXME: The field of passwordChangedAt is not being logged in with the code above!!
+  // const newUser = await User.create(req.body); // FIXME: The field of passwordChangedAt is not being logged in with the code above!!
 
   const token = signToken(newUser._id);
   // jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
@@ -99,7 +104,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   if (freshUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppErrors(
-        'User recently changed password. Please log in again!!',
+        'User recently changed password. Please log  in again!!',
         401
       )
     );
@@ -111,4 +116,33 @@ exports.protect = catchAsync(async (req, res, next) => {
   // Here the code will have to go through all the hurdles above to get to this next which will get it to the next route handler which in this situation will be to grant the user access.
 });
 
-// 132
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    // roles is an array  ['admin','lead-guide'] .role='user' if this is the case then since it is not in the roles array and therefore it will not occur
+
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppErrors('You do not have permission to perform this action', 403)
+        // 403 code means forbidden!
+      );
+    }
+    next();
+  };
+};
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  // 1) Get user based on Posted email
+
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppErrors('there is no user with this email address', 404));
+  }
+  // 2) Generate the random reset token
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+  // 3) Send it to user's email address
+});
+exports.resetPassword = (req, res, next) => {};
+
+// ?134 again and again and again !!!!
