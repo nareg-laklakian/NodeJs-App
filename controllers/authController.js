@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./../models/userModels');
 const catchAsync = require('./../utils/catchAsync');
 const AppErrors = require('./../utils/appErrors');
+const sendEmail = require('./../utils/email');
 
 // in the code below we changes the User.create(req.body) method to the 4 lines of code below so that every new user that is created doesn't become an admin and how we can get admin is to go into mongoDb Compass and then edit the user role to admin from there.
 
@@ -144,6 +145,37 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
   // 3) Send it to user's email address
+
+  const resetURL = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${resetToken}`;
+
+  const message = `Forgot your password? submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email`;
+
+  try {
+    await sendEmail({
+      email: req.body.email,
+      // or we can also say req.body.email which is the same here actually
+      subject: 'Your password reset Token (valid for 10 minutes)',
+      message,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Token sent to email!',
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(
+      new AppErrors(
+        'There was an error sending the email, try again later',
+        500
+      )
+    );
+  }
 });
 exports.resetPassword = (req, res, next) => {};
 
