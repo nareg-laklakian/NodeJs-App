@@ -97,16 +97,20 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
+  // for the reason of the plain resetToken not be stored in the database we are going to encrypt but not as strong as the password itself
 
-  console.log({ resetToken }, this.passwordResetToken);
+  this.passwordResetToken = crypto
+    .createHash('sha256') // the sha256 algorithm
+    .update(resetToken) // the token itself (the string that we want to encrypt)
+    .digest('hex'); // digest and store it as a hexadecimal
+
+  // we store it in the database so that we can compare it with the reset token that the user provided
+
+  console.log({ resetToken }, this.passwordResetToken); // when we log something as an object it will tell us its variable name along with the value
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // since Date is in milliseconds therefore we wrote 10 times 60 for seconds and then 1000 for milliseconds
 
-  return resetToken;
+  return resetToken; // here we have to send the unencrypted resetToken
 };
 
 const User = mongoose.model('User', userSchema);
