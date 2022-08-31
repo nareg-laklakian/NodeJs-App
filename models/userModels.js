@@ -20,7 +20,6 @@ const userSchema = new mongoose.Schema({
     lowerCase: true, // al this is going to do is transform the email to a lowercase!!!
     validate: [validator.isEmail, 'Please Provide a valid email!'],
   },
-
   photo: String,
   role: {
     type: String,

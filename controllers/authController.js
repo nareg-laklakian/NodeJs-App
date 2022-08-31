@@ -14,6 +14,18 @@ const signToken = (id) => {
   });
 };
 
+const createAndSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  console.log(user);
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -29,20 +41,21 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   // const newUser = await User.create(req.body); // FIXME: The field of passwordChangedAt is not being logged in with the code above!!
 
-  const token = signToken(newUser._id);
-  // jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-  //   expiresIn: process.env.JWT_EXPIRES_IN,
+  createAndSendToken(newUser, 201, res);
+  // const token = signToken(newUser._id);
+  // // jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+  // //   expiresIn: process.env.JWT_EXPIRES_IN,
+  // // });
+  // //
+  // console.log(newUser);
+  // //
+  // res.status(201).json({
+  //   status: 'success',
+  //   token,
+  //   data: {
+  //     user: newUser,
+  //   },
   // });
-  //
-  console.log(newUser);
-  //
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  });
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -67,8 +80,10 @@ exports.login = catchAsync(async (req, res, next) => {
   // console.log(user);
 
   // 3) Check if everything is ok , send token to client
-  const token = signToken(user._id);
-  res.status(200).json({ status: 'success', token });
+
+  createAndSendToken(user, 200, res);
+  // const token = signToken(user._id);
+  // res.status(200).json({ status: 'success', token });
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -209,10 +224,41 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // 3) Update changedPasswordAt property for the user
   // 4) Log the user , and send the JWT
 
+  createAndSendToken(user, 200, res);
+  /*
   const token = signToken(user._id);
   res.status(200).json({ status: 'success', token });
+  */
 
   // in the code above for users passwords we are using save and not update like we did with the tours because we want to be able to run all the validations and save middleware functions on these two
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // this function is only for logged in users but still we also need for the user to pass in his current password in order to confirm that the user is who they say they are as a security measure
+  // 1) Get user for the collection
+  const user = await User.findById(req.user.id).select('+password');
+  // 2) check if the posted password is correct
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(
+      new AppErrors(
+        'The password provided is not the users password, please provide the correct password',
+        401
+      )
+    );
+  }
+  // 3) if the password is correct then update the password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // we did not use User.findByIdAndDelete because the validators does not work on update, it only works on create and save and since we need the validation to happen we must not use update password or update user here!!! and the pre save middleware will not work (ie: encryption and timestamp in userModels!!!)
+
+  // 4) log the user in, send the JWT
+
+  createAndSendToken(user, 200, res);
+  /*
+  const token = signToken(user._id);
+  res.status(200).json({ status: 'success', token });
+  */
 });
 
 // ?134 again and again and again !!!!
