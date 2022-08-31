@@ -4,6 +4,7 @@ const User = require('./../models/userModels');
 const catchAsync = require('./../utils/catchAsync');
 const AppErrors = require('./../utils/appErrors');
 const sendEmail = require('./../utils/email');
+const crypto = require('crypto');
 
 // in the code below we changes the User.create(req.body) method to the 4 lines of code below so that every new user that is created doesn't become an admin and how we can get admin is to go into mongoDb Compass and then edit the user role to admin from there.
 
@@ -177,6 +178,41 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     );
   }
 });
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1) Get user based on the token
+  // remember that the token that is sent back through the url is the non encrypted token and the one stored in the database is the encrypted one so we are going to take the token sent through the url and encrypt it to compare it with the one saved in the database and see if they match
+
+  // this is a req.params.token because we specified so in the url of the userRoutes('/resetPassword/:token')
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+  // here we want to check if the passwordResetExpires property is greater than now so it hasn't yet expired!!!
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  // so with the code right above we do two things: 1) Find the user for the token by the findOne property using the token , 2) check if the passwordResetExpires has not yet expired
+  // 2) Set the new password only if the token has not expired and there is a user and then only we set the new password
+  if (!user) {
+    return next(new AppErrors('Token is invalid or has expired', 400));
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+
+  await user.save();
+  // ^ here we are not turing off the validators because we actually want for the validation to take place!
+  // 3) Update changedPasswordAt property for the user
+  // 4) Log the user , and send the JWT
+
+  const token = signToken(user._id);
+  res.status(200).json({ status: 'success', token });
+
+  // in the code above for users passwords we are using save and not update like we did with the tours because we want to be able to run all the validations and save middleware functions on these two
+});
 
 // ?134 again and again and again !!!!
