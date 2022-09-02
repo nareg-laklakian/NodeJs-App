@@ -135,5 +135,3 @@ userSchema.methods.createPasswordResetToken = function () {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
-
-// ?134 again and again and again !!!!
