@@ -47,6 +47,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 // between getting the data and saving it to the database
@@ -68,6 +73,13 @@ userSchema.pre('save', function (next) {
 
   this.passwordChangedAt = Date.now() - 1000;
 
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  // 'this' point to the current query
+  this.find({ active: { $ne: false } });
+  //? here instead of saying only show the documents that the active is true we said show the docs where the active is not false ({$ne: false}) because of odler docs might not have the active parameter in their object and therefore they will also not show up if the active is only allowing true
   next();
 });
 
