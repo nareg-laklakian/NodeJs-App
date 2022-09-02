@@ -20,6 +20,8 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+
+router.patch('/updateMe', authController.protect, userController.updateMe); // it is a protected so only the currently authenticated user can update data of the current user! the id of the user that is going to be updated comes from the request.user
 router
   .route('/')
   .get(userController.getAllUsers)
